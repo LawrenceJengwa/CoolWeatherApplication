@@ -1,5 +1,9 @@
 package com.lawrence.coolweatherapplication;
 
+import static com.lawrence.coolweatherapplication.utils.WeatherUtil.INPUT_PATTERN;
+import static com.lawrence.coolweatherapplication.utils.WeatherUtil.OUTPUT_PATTERN;
+
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +14,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.lawrence.coolweatherapplication.databinding.WeatherRvItemBinding;
 import com.lawrence.coolweatherapplication.model.WeatherRVModel;
 import com.squareup.picasso.Picasso;
 
@@ -19,8 +24,8 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class WeatherRVAdapter extends RecyclerView.Adapter<WeatherRVAdapter.WeatherViewHolder> {
-    private Context context;
-    private ArrayList<WeatherRVModel> weatherRVModelArrayList;
+    private final Context context;
+    private final ArrayList<WeatherRVModel> weatherRVModelArrayList;
 
     public WeatherRVAdapter(Context context, ArrayList<WeatherRVModel> weatherRVModelArrayList) {
         this.context = context;
@@ -38,19 +43,20 @@ public class WeatherRVAdapter extends RecyclerView.Adapter<WeatherRVAdapter.Weat
     public void onBindViewHolder(@NonNull WeatherViewHolder holder, int position) {
         WeatherRVModel weatherModel = weatherRVModelArrayList.get(position);
         String baseUrl = "http:";
-        Picasso.get().load(baseUrl.concat(weatherModel.getIcon())).into(holder.conditionIV);
-        holder.temperatureTv.setText(weatherModel.getTemperature() + "\t°C");
-        holder.windTv.setText(weatherModel.getWindSpeed() + "km/h");
+        Picasso.get().load(baseUrl.concat(weatherModel.getIcon())).into(holder.binding.idIVCondition);
+        holder.binding.idTVTemperature.setText(String.format("%s\t°C", weatherModel.getTemperature()));
+        holder.binding.idTVWindSpeed.setText(String.format("%skm/h", weatherModel.getWindSpeed()));
 
-        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-        SimpleDateFormat outputFormat = new SimpleDateFormat("hh:mm aa");
-        try{
+        @SuppressLint("SimpleDateFormat")
+        SimpleDateFormat inputFormat = new SimpleDateFormat(OUTPUT_PATTERN);
+        @SuppressLint("SimpleDateFormat")
+         SimpleDateFormat outputFormat = new SimpleDateFormat(INPUT_PATTERN);
+        try {
             Date date = inputFormat.parse(weatherModel.getTime());
-            holder.timeTv.setText(outputFormat.format(date));
+            holder.binding.idTVTime.setText(outputFormat.format(date));
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
 
     }
 
@@ -61,15 +67,11 @@ public class WeatherRVAdapter extends RecyclerView.Adapter<WeatherRVAdapter.Weat
 
     protected static class WeatherViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView windTv, temperatureTv, timeTv;
-        private ImageView conditionIV;
+        private final WeatherRvItemBinding binding;
 
         public WeatherViewHolder(@NonNull View itemView) {
             super(itemView);
-            windTv = itemView.findViewById(R.id.idTVWindSpeed);
-            temperatureTv = itemView.findViewById(R.id.idTVTemperature);
-            timeTv = itemView.findViewById(R.id.idTVTime);
-            conditionIV = itemView.findViewById(R.id.idIVCondition);
+            binding = WeatherRvItemBinding.bind(itemView);
         }
     }
 }

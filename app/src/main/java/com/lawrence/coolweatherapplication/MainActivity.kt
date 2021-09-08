@@ -1,6 +1,5 @@
 package com.lawrence.coolweatherapplication
 
-import android.app.DownloadManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Address
@@ -11,45 +10,39 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Request
 import com.android.volley.RequestQueue
-import com.android.volley.Response
-import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.google.android.material.textfield.TextInputEditText
+import com.lawrence.coolweatherapplication.databinding.ActivityMainBinding
 import com.lawrence.coolweatherapplication.model.WeatherRVModel
+import com.lawrence.coolweatherapplication.utils.WeatherUtil.dayImageUrl
+import com.lawrence.coolweatherapplication.utils.WeatherUtil.nightImageUrl
+import com.lawrence.coolweatherapplication.viewModel.MainViewModel
 import com.squareup.picasso.Picasso
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.util.*
-import java.util.jar.Manifest
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var homeRL: RelativeLayout
-    private lateinit var loadingPB: ProgressBar
-    private lateinit var cityNameTv: TextView
-    private lateinit var temperatureTv: TextView
-    private lateinit var conditionTv: TextView
-    private lateinit var cityEdt: TextInputEditText
-    private lateinit var iconIV: ImageView
-    private lateinit var backIV: ImageView
-    private lateinit var searchIV: ImageView
-    private lateinit var weatherRv: RecyclerView
 
     private lateinit var mCityName: String
 
     private var weatherList: ArrayList<WeatherRVModel> = ArrayList()
     private lateinit var weatherAdapter: WeatherRVAdapter
     private lateinit var locationManager: LocationManager
+    private lateinit var viewModel: MainViewModel
+    private lateinit var binding: ActivityMainBinding
 
     companion object {
         const val REQUEST_CODE = 100
@@ -61,21 +54,14 @@ class MainActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
-        setContentView(R.layout.activity_main)
 
-        homeRL = findViewById(R.id.idRLHome)
-        loadingPB = findViewById(R.id.idPBLoading)
-        cityNameTv = findViewById(R.id.idTVCityName)
-        temperatureTv = findViewById(R.id.idTVTemperature)
-        conditionTv = findViewById(R.id.idTVCondition)
-        cityEdt = findViewById(R.id.idEdtCity)
-        iconIV = findViewById(R.id.idIVIcon)
-        backIV = findViewById(R.id.idIVBack)
-        searchIV = findViewById(R.id.idIVSearch)
-        weatherRv = findViewById(R.id.idRvWeather)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         weatherAdapter = WeatherRVAdapter(this, weatherList)
-        weatherRv.adapter = weatherAdapter
+        binding.idRvWeather.adapter = weatherAdapter
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -102,12 +88,12 @@ class MainActivity : AppCompatActivity() {
         mCityName = location?.let { getCityName(it.longitude, it.latitude) }.toString()
         getWeatherInfo(mCityName)
 
-        searchIV.setOnClickListener {
-            val city: String = cityEdt.text.toString()
+        binding.idIVSearch.setOnClickListener {
+            val city: String = binding.idEdtCity.text.toString()
             if (city.isEmpty()) {
                 Toast.makeText(this, "Please enter city name", Toast.LENGTH_SHORT).show()
             } else {
-                cityNameTv.text = city
+                binding.idTVCityName.text = city
                 getWeatherInfo(city)
             }
         }
@@ -117,11 +103,11 @@ class MainActivity : AppCompatActivity() {
         val url: String =
             "http://api.weatherapi.com/v1/forecast.json?key=89c6e74682074bc3a8182444210809&q=" + cityName + "&days=1&aqi=no&alerts=no"
 
-        cityNameTv.text = mCityName
+        binding.idTVCityName.text = mCityName
         val requestQueue: RequestQueue = Volley.newRequestQueue(this)
         val request = JsonObjectRequest(Request.Method.GET, url, null, {
-            loadingPB.visibility = View.GONE
-            homeRL.visibility = View.VISIBLE
+            binding.idPBLoading.visibility = View.GONE
+            binding.idRLHome.visibility = View.VISIBLE
 
             weatherList.clear()
             try {
@@ -132,16 +118,13 @@ class MainActivity : AppCompatActivity() {
                 var conditionIcon: String = it.getJSONObject("current").getJSONObject("condition").getString("icon")
                 var joined: String = "$baseUrl$conditionIcon"
 
-                temperatureTv.text = temperature+"°C"
-                conditionTv.text = condition
-                Picasso.get().load(joined).into(iconIV)
+                binding.idTVTemperature.text = temperature+"°C"
+                binding.idTVCondition.text = condition
+                Picasso.get().load(joined).into(binding.idIVIcon)
                 if (isDay == 1){
-                    val day: String = "https://images.unsplash.com/photo-1542709111240-e9df0dd813b4?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8ZGF5fGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-                    Picasso.get().load(day).into(backIV)
+                    Picasso.get().load(dayImageUrl).into(binding.idIVBack)
                 }else {
-                    val night: String =
-                        "https://images.unsplash.com/photo-1475274047050-1d0c0975c63e?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8bmlnaHQlMjBza3l8ZW58MHx8MHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-                    Picasso.get().load(night).into(backIV)
+                  Picasso.get().load(nightImageUrl).into(binding.idIVBack)
                 }
 
                 val forecast: JSONObject= it.getJSONObject("forecast")
