@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="100dp"
+    android:layout_width="@dimen/card_width"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_margin="4dp"
+    android:layout_margin="@dimen/small_padding"
     android:layout_gravity="center"
-    app:cardElevation="6dp"
-    app:cardCornerRadius="10dp"
+    app:cardElevation="@dimen/card_elevation_margin"
+    app:cardCornerRadius="@dimen/card_radius_size"
     android:background="@android:color/transparent">
 
     <RelativeLayout
@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:padding="4dp"
+            android:padding="@dimen/small_margin"
             android:textColor="@color/white"
             android:textAlignment="center"/>
         <TextView
@@ -27,20 +27,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="20"
-            android:textSize="20sp"
+            android:text="@string/temp_20"
+            android:textSize="@dimen/text_size_third"
             android:layout_below="@id/idTVTime"
             android:textColor="@color/white"
             android:textAlignment="center"/>
 
         <ImageView
             android:id="@+id/idIVCondition"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="@dimen/standard_image_size"
+            android:layout_height="@dimen/standard_image_size"
             android:layout_below="@id/idTVTemperature"
             android:layout_centerHorizontal="true"
-            android:layout_margin="5dp"
-            android:padding="4dp"
+            android:layout_margin="@dimen/small_padding"
+            android:padding="@dimen/small_margin"
             android:src="@mipmap/ic_launcher"/>
 
         <TextView
@@ -48,10 +48,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_margin="4dp"
-            android:padding="4dp"
-            android:text="13"
-            android:textSize="20sp"
+            android:layout_margin="@dimen/small_margin"
+            android:padding="@dimen/small_margin"
+            android:text="@string/temp_13"
+            android:textSize="@dimen/text_size_third"
             android:layout_centerHorizontal="true"
             android:layout_below="@id/idIVCondition"
             android:textColor="@color/white"

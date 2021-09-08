@@ -30,13 +30,13 @@
             android:id="@+id/idTVCityName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="@dimen/top_margin_large"
             android:gravity="center"
-            android:padding="20dp"
-            android:text="City name"
+            android:padding="@dimen/padding_large"
+            android:text="@string/city_name"
             android:textAlignment="center"
             android:textColor="@color/white"
-            android:textSize="18sp" />
+            android:textSize="@dimen/text_size_medium" />
 
         <LinearLayout
             android:id="@+id/idLLEdt"
@@ -51,11 +51,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_margin="10dp"
+                android:layout_margin="@dimen/text_bottom_margin"
                 android:layout_weight="4.5"
                 android:background="@android:color/transparent"
-                android:hint="Enter city name"
-                android:padding="5dp"
+                android:hint="@string/enter_city_name"
+                android:padding="@dimen/small_padding"
                 android:textColorHint="@color/white"
                 app:hintTextColor="@color/white">
 
@@ -68,7 +68,7 @@
                     android:inputType="text"
                     android:singleLine="true"
                     android:textColor="@color/white"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_size_small" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <ImageView
@@ -76,7 +76,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_margin="10dp"
+                android:layout_margin="@dimen/text_bottom_margin"
                 android:layout_weight="0.5"
                 android:background="@android:color/transparent"
                 android:src="@drawable/ic_search"
@@ -91,11 +91,11 @@
             android:layout_below="@id/idLLEdt"
             android:layout_margin="10dp"
             android:gravity="center_horizontal"
-            android:padding="5dp"
-            android:text="22"
+            android:padding="@dimen/small_padding"
+            android:text="@string/temp_22"
             android:textAlignment="center"
             android:textColor="@color/white"
-            android:textSize="70sp" />
+            android:textSize="@dimen/text_size_large" />
 
         <ImageView
             android:id="@+id/idIVIcon"
@@ -103,7 +103,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/idTVTemperature"
             android:layout_centerHorizontal="true"
-            android:layout_margin="10dp"
+            android:layout_margin="@dimen/text_bottom_margin"
             android:src="@mipmap/ic_launcher" />
 
         <TextView
@@ -111,9 +111,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/idIVIcon"
-            android:layout_margin="10dp"
+            android:layout_margin="@dimen/text_bottom_margin"
             android:gravity="center"
-            android:text="Condition"
+            android:text="@string/condition"
             android:textAlignment="center"
             android:textColor="@color/white" />
 
@@ -121,10 +121,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@id/idRvWeather"
-            android:layout_margin="8dp"
-            android:layout_marginBottom="10dp"
+            android:layout_margin="@dimen/medium_margin"
+            android:layout_marginBottom="@dimen/text_bottom_margin"
             android:gravity="center"
-            android:text="Today's Weather forecast"
+            android:text="@string/weather_forecast_title"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textStyle="bold" />
