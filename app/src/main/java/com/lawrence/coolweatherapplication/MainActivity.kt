@@ -10,21 +10,17 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.google.android.material.textfield.TextInputEditText
 import com.lawrence.coolweatherapplication.databinding.ActivityMainBinding
-import com.lawrence.coolweatherapplication.model.WeatherRVModel
-import com.lawrence.coolweatherapplication.utils.WeatherUtil.dayImageUrl
-import com.lawrence.coolweatherapplication.utils.WeatherUtil.nightImageUrl
+import com.lawrence.coolweatherapplication.model.WeatherModel
+import com.lawrence.coolweatherapplication.utils.WeatherUtil.*
 import com.lawrence.coolweatherapplication.viewModel.MainViewModel
 import com.squareup.picasso.Picasso
 import org.json.JSONArray
@@ -38,14 +34,15 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mCityName: String
 
-    private var weatherList: ArrayList<WeatherRVModel> = ArrayList()
-    private lateinit var weatherAdapter: WeatherRVAdapter
+    private var weatherList: ArrayList<WeatherModel> = ArrayList()
+    private lateinit var weatherAdapter: WeatherAdapter
     private lateinit var locationManager: LocationManager
     private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
 
     companion object {
         const val REQUEST_CODE = 100
+        const val DAY_INT = 1
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,7 +57,8 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
-        weatherAdapter = WeatherRVAdapter(this, weatherList)
+        weatherAdapter =
+            WeatherAdapter(this, weatherList)
         binding.idRvWeather.adapter = weatherAdapter
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (ActivityCompat.checkSelfPermission(
@@ -99,9 +97,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //volley network call, should be moved to network package
     private fun getWeatherInfo(cityName: String) {
-        val url: String =
-            "http://api.weatherapi.com/v1/forecast.json?key=89c6e74682074bc3a8182444210809&q=" + cityName + "&days=1&aqi=no&alerts=no"
+        val url = "$BASE_URL$API_KEY$cityName$DAYS_SUFFIX"
 
         binding.idTVCityName.text = mCityName
         val requestQueue: RequestQueue = Volley.newRequestQueue(this)
@@ -111,20 +109,20 @@ class MainActivity : AppCompatActivity() {
 
             weatherList.clear()
             try {
-                var baseUrl: String = "http:"
-                var temperature: String = it.getJSONObject("current").getString("temp_c")
-                var isDay: Int = it.getJSONObject("current").getInt("is_day")
-                var condition: String = it.getJSONObject("current").getJSONObject("condition").getString("text")
-                var conditionIcon: String = it.getJSONObject("current").getJSONObject("condition").getString("icon")
-                var joined: String = "$baseUrl$conditionIcon"
+                val urlSuffix = "http:"
+                val temperature: String = it.getJSONObject("current").getString("temp_c")
+                val isDay: Int = it.getJSONObject("current").getInt("is_day")
+                val condition: String = it.getJSONObject("current").getJSONObject("condition").getString("text")
+                val conditionIcon: String = it.getJSONObject("current").getJSONObject("condition").getString("icon")
+                val joinedUrl = "$urlSuffix$conditionIcon"
 
                 binding.idTVTemperature.text = temperature+"°C"
                 binding.idTVCondition.text = condition
-                Picasso.get().load(joined).into(binding.idIVIcon)
-                if (isDay == 1){
-                    Picasso.get().load(dayImageUrl).into(binding.idIVBack)
+                loadImage(joinedUrl, binding.idIVIcon)
+                if (isDay == DAY_INT){
+                    loadImage(dayImageUrl, binding.idIVBack)
                 }else {
-                  Picasso.get().load(nightImageUrl).into(binding.idIVBack)
+                    loadImage(nightImageUrl, binding.idIVBack)
                 }
 
                 val forecast: JSONObject= it.getJSONObject("forecast")
@@ -138,7 +136,14 @@ class MainActivity : AppCompatActivity() {
                     val image: String = hourObject.getJSONObject("condition").getString("icon")
                     val wind: String = hourObject.getString("wind_kph")
 
-                    weatherList.add(WeatherRVModel(time, temp, image, wind))
+                    weatherList.add(
+                        WeatherModel(
+                            time,
+                            temp,
+                            image,
+                            wind
+                        )
+                    )
                 }
                 weatherAdapter.notifyDataSetChanged()
 
@@ -176,18 +181,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun getCityName(longitude: Double, latitude: Double): String {
         var cityName = "Not found"
-        val geocoder: Geocoder = Geocoder(baseContext, Locale.getDefault())
+        val geocoder = Geocoder(baseContext, Locale.getDefault())
         try {
             var addressList: List<Address> = geocoder.getFromLocation(latitude, longitude, 10)
             for (address in addressList) {
-                if (address != null) {
-                    var city: String = address.locality
-                    if (city != null && city.isNotEmpty()) {
-                        cityName = city
-                    } else {
-                        Log.d("TAG", "CITY NOT FOUND")
-                        Toast.makeText(this, "Entered city not found", Toast.LENGTH_SHORT).show()
-                    }
+                val city: String = address.locality
+                if (city.isNotEmpty()) {
+                    cityName = city
+                } else {
+                    Log.d("TAG", "CITY NOT FOUND")
+                    Toast.makeText(this, "Entered city not found", Toast.LENGTH_SHORT).show()
                 }
             }
 

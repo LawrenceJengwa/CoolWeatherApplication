@@ -1,13 +1,13 @@
 package com.lawrence.coolweatherapplication.model;
 
-public class WeatherRVModel {
+public class WeatherModel {
 
     private String time;
     private String temperature;
     private String icon;
     private String windSpeed;
 
-    public WeatherRVModel(String time, String temperature, String icon, String windSpeed) {
+    public WeatherModel(String time, String temperature, String icon, String windSpeed) {
         this.time = time;
         this.temperature = temperature;
         this.icon = icon;

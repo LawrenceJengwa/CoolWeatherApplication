@@ -8,14 +8,12 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.lawrence.coolweatherapplication.databinding.WeatherRvItemBinding;
-import com.lawrence.coolweatherapplication.model.WeatherRVModel;
+import com.lawrence.coolweatherapplication.model.WeatherModel;
 import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
@@ -23,13 +21,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class WeatherRVAdapter extends RecyclerView.Adapter<WeatherRVAdapter.WeatherViewHolder> {
+public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.WeatherViewHolder> {
     private final Context context;
-    private final ArrayList<WeatherRVModel> weatherRVModelArrayList;
+    private final ArrayList<WeatherModel> weatherModelArrayList;
 
-    public WeatherRVAdapter(Context context, ArrayList<WeatherRVModel> weatherRVModelArrayList) {
+    public WeatherAdapter(Context context, ArrayList<WeatherModel> weatherModelArrayList) {
         this.context = context;
-        this.weatherRVModelArrayList = weatherRVModelArrayList;
+        this.weatherModelArrayList = weatherModelArrayList;
     }
 
     @NonNull
@@ -41,7 +39,7 @@ public class WeatherRVAdapter extends RecyclerView.Adapter<WeatherRVAdapter.Weat
 
     @Override
     public void onBindViewHolder(@NonNull WeatherViewHolder holder, int position) {
-        WeatherRVModel weatherModel = weatherRVModelArrayList.get(position);
+        WeatherModel weatherModel = weatherModelArrayList.get(position);
         String baseUrl = "http:";
         Picasso.get().load(baseUrl.concat(weatherModel.getIcon())).into(holder.binding.idIVCondition);
         holder.binding.idTVTemperature.setText(String.format("%s\t°C", weatherModel.getTemperature()));
@@ -62,7 +60,7 @@ public class WeatherRVAdapter extends RecyclerView.Adapter<WeatherRVAdapter.Weat
 
     @Override
     public int getItemCount() {
-        return weatherRVModelArrayList.size();
+        return weatherModelArrayList.size();
     }
 
     protected static class WeatherViewHolder extends RecyclerView.ViewHolder {
