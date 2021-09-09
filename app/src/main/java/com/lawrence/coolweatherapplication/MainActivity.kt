@@ -2,13 +2,10 @@ package com.lawrence.coolweatherapplication
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Address
-import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.*
@@ -22,11 +19,9 @@ import com.lawrence.coolweatherapplication.databinding.ActivityMainBinding
 import com.lawrence.coolweatherapplication.model.WeatherModel
 import com.lawrence.coolweatherapplication.utils.WeatherUtil.*
 import com.lawrence.coolweatherapplication.viewModel.MainViewModel
-import com.squareup.picasso.Picasso
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -55,11 +50,27 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         weatherAdapter =
             WeatherAdapter(this, weatherList)
         binding.idRvWeather.adapter = weatherAdapter
+
+        checkPermissions()
+        getWeatherInfo(mCityName)
+
+        binding.idIVSearch.setOnClickListener {
+            val city: String = binding.idEdtCity.text.toString()
+            if (city.isEmpty()) {
+                Toast.makeText(this, "Please enter city name", Toast.LENGTH_SHORT).show()
+            } else {
+                binding.idTVCityName.text = city
+                getWeatherInfo(city)
+            }
+        }
+    }
+
+    private fun checkPermissions(){
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -80,28 +91,20 @@ class MainActivity : AppCompatActivity() {
                 REQUEST_CODE
             )
         }
-
         val location: Location? =
             locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-        mCityName = location?.let { getCityName(it.longitude, it.latitude) }.toString()
-        getWeatherInfo(mCityName)
+        setLocation(location)
+    }
 
-        binding.idIVSearch.setOnClickListener {
-            val city: String = binding.idEdtCity.text.toString()
-            if (city.isEmpty()) {
-                Toast.makeText(this, "Please enter city name", Toast.LENGTH_SHORT).show()
-            } else {
-                binding.idTVCityName.text = city
-                getWeatherInfo(city)
-            }
-        }
+    private fun setLocation(location: Location?) {
+        mCityName = location?.let { viewModel.getCityName(baseContext, it.longitude, it.latitude) }.toString()
     }
 
     //volley network call, should be moved to network package
     private fun getWeatherInfo(cityName: String) {
         val url = "$BASE_URL$API_KEY$cityName$DAYS_SUFFIX"
 
-        binding.idTVCityName.text = mCityName
+        setCityName(cityName)
         val requestQueue: RequestQueue = Volley.newRequestQueue(this)
         val request = JsonObjectRequest(Request.Method.GET, url, null, {
             binding.idPBLoading.visibility = View.GONE
@@ -158,6 +161,35 @@ class MainActivity : AppCompatActivity() {
         requestQueue.add(request)
     }
 
+    private fun setCityName(cityName: String){
+        if (cityName.isEmpty()){
+            binding.idTVCityName.text = getString(R.string.default_city)
+        }
+        binding.idTVCityName.text = cityName
+    }
+
+/*    @SuppressLint("NotifyDataSetChanged")
+    fun loadUI() {
+        val urlSuffix = "http:"
+        weatherAdapter.notifyDataSetChanged()
+
+        binding.apply {
+            idPBLoading.visibility = View.GONE
+            idRLHome.visibility = View.VISIBLE
+            idTVCityName.text = viewModel.getCityName().value
+
+            idTVTemperature.text = viewModel.getTemperature().value
+            idTVCondition.text = viewModel.getConditionIcon().value
+        }
+        val joinedUrl = "$urlSuffix${viewModel.getCondition().value}"
+        loadImage(joinedUrl, binding.idIVIcon)
+        if (viewModel.getIsDay().value == DAY_INT) {
+            loadImage(dayImageUrl, binding.idIVBack)
+        } else {
+            loadImage(nightImageUrl, binding.idIVBack)
+        }
+    }*/
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -177,28 +209,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    private fun getCityName(longitude: Double, latitude: Double): String {
-        var cityName = "Not found"
-        val geocoder = Geocoder(baseContext, Locale.getDefault())
-        try {
-            var addressList: List<Address> = geocoder.getFromLocation(latitude, longitude, 10)
-            for (address in addressList) {
-                val city: String = address.locality
-                if (city.isNotEmpty()) {
-                    cityName = city
-                } else {
-                    Log.d("TAG", "CITY NOT FOUND")
-                    Toast.makeText(this, "Entered city not found", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-        } catch (e: IOException) {
-
-        }
-        return cityName
-
     }
 
 }

@@ -5,6 +5,7 @@
     <string name="temp_22">22</string>
     <string name="condition">Condition</string>
     <string name="weather_forecast_title">Today\'s Weather forecast</string>
+    <string name="default_city">City</string>
     <string name="temp_13">13</string>
     <string name="temp_20">20</string>
 </resources>
