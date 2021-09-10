@@ -23,7 +23,7 @@ import java.util.Date;
 
 public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.WeatherViewHolder> {
     private final Context context;
-    private final ArrayList<WeatherModel> weatherModelArrayList;
+    private ArrayList<WeatherModel> weatherModelArrayList;
 
     public WeatherAdapter(Context context, ArrayList<WeatherModel> weatherModelArrayList) {
         this.context = context;
@@ -56,6 +56,11 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.WeatherV
             e.printStackTrace();
         }
 
+    }
+
+    public void addWeatherList(ArrayList<WeatherModel> weatherList){
+        this.weatherModelArrayList = weatherList;
+        notifyDataSetChanged();
     }
 
     @Override

@@ -4,19 +4,21 @@ import android.content.Context
 import android.location.Address
 import android.location.Geocoder
 import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.lawrence.coolweatherapplication.MainActivity
 import com.lawrence.coolweatherapplication.WeatherAdapter
 import com.lawrence.coolweatherapplication.model.WeatherModel
+import com.lawrence.coolweatherapplication.utils.NetworkUtil
 import com.lawrence.coolweatherapplication.utils.WeatherUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -32,7 +34,6 @@ class MainViewModel : ViewModel() {
     private val condition = MutableLiveData<String>()
     private val mCityName = MutableLiveData<String>()
     private val temperature = MutableLiveData<String>()
-    private lateinit var weatherAdapter: WeatherAdapter
 
     fun getWeatherList(): LiveData<MutableList<WeatherModel>> = weatherList
     fun getTemperature(): LiveData<String> = temperature
@@ -67,22 +68,26 @@ class MainViewModel : ViewModel() {
         return cityName
     }
 
-    fun getWeatherInfo(context: Context, cityName: String) {
-        val url = "${WeatherUtil.BASE_URL}${WeatherUtil.API_KEY}$cityName${WeatherUtil.DAYS_SUFFIX}"
+    fun getWeatherData(context: Context, cityName: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            val data = NetworkUtil(context).getWeatherData(cityName)
+            withContext(Dispatchers.IO){
+                getWeatherInfo(data)
+            }
+        }
+    }
 
-        val requestQueue: RequestQueue = Volley.newRequestQueue(context)
-        val request = JsonObjectRequest(Request.Method.GET, url, null, {
+    private fun getWeatherInfo(request: JSONObject) {
+
             weatherList.value?.clear()
-
-            try {
-                temperature.value = it.getJSONObject("current").getString("temp_c")
-                isDay.value = it.getJSONObject("current").getInt("is_day")
-                condition.value = it.getJSONObject("current").getJSONObject("condition").getString("text")
-                conditionIcon.value = it.getJSONObject("current").getJSONObject("condition").getString("icon")
-
-                val forecast: JSONObject = it.getJSONObject("forecast")
+                temperature.postValue(request.getJSONObject("current").getString("temp_c"))
+                isDay.postValue(request.getJSONObject("current").getInt("is_day"))
+                condition.postValue(request.getJSONObject("current").getJSONObject("condition").getString("text"))
+                conditionIcon.postValue(request.getJSONObject("current").getJSONObject("condition").getString("icon"))
+                val forecast: JSONObject = request.getJSONObject("forecast")
                 val forecastDay: JSONObject = forecast.getJSONArray("forecastday").getJSONObject(0)
                 val hourArray: JSONArray = forecastDay.getJSONArray("hour")
+
 
                 for (i in 0 until hourArray.length()){
                     val hourObject = hourArray.getJSONObject(i)
@@ -100,15 +105,6 @@ class MainViewModel : ViewModel() {
                         )
                     )
                 }
-
-            }catch (e: JSONException){
-                e.printStackTrace()
-            }
-
-        }) {
-            Log.d("MainViewModel", "Please enter valid city name:")
-        }
-        requestQueue.add(request)
     }
 
 }

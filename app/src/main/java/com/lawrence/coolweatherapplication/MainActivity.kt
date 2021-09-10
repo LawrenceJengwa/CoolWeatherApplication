@@ -10,6 +10,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.*
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.android.volley.Request
 import com.android.volley.RequestQueue
@@ -28,7 +29,6 @@ import kotlin.collections.ArrayList
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mCityName: String
-
     private var weatherList: ArrayList<WeatherModel> = ArrayList()
     private lateinit var weatherAdapter: WeatherAdapter
     private lateinit var locationManager: LocationManager
@@ -51,13 +51,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        val temp: LiveData<String> = viewModel.getTemperature()
+        val condition: LiveData<String> = viewModel.getCondition()
+        val townName: LiveData<String> = viewModel.getCityName()
+        setUpObservers(condition, temp, townName)
 
         weatherAdapter =
             WeatherAdapter(this, weatherList)
         binding.idRvWeather.adapter = weatherAdapter
 
+        viewModel.getWeatherList().observe(this, {
+            weatherAdapter.addWeatherList(it as java.util.ArrayList<WeatherModel>?)
+        })
+
         checkPermissions()
-        getWeatherInfo(mCityName)
+        setCityName(mCityName)
+
+        viewModel.getWeatherData(this, mCityName)
+        loadUI()
 
         binding.idIVSearch.setOnClickListener {
             val city: String = binding.idEdtCity.text.toString()
@@ -65,12 +76,30 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please enter city name", Toast.LENGTH_SHORT).show()
             } else {
                 binding.idTVCityName.text = city
-                getWeatherInfo(city)
+                viewModel.getWeatherData(this, mCityName)
             }
         }
     }
 
-    private fun checkPermissions(){
+    private fun setUpObservers(
+        condition: LiveData<String>,
+        temp: LiveData<String>,
+        cityName: LiveData<String>
+    ) {
+        condition.observe(this, {
+            binding.idTVCondition.text = it
+        })
+
+        temp.observe(this, {
+            binding.idTVTemperature.text = it
+        })
+
+        cityName.observe(this, {
+            binding.idTVCityName.text = it
+        })
+    }
+
+    private fun checkPermissions() {
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -97,89 +126,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setLocation(location: Location?) {
-        mCityName = location?.let { viewModel.getCityName(baseContext, it.longitude, it.latitude) }.toString()
+        mCityName = location?.let { viewModel.getCityName(baseContext, it.longitude, it.latitude) }
+            .toString()
     }
 
-    //volley network call, should be moved to network package
-    private fun getWeatherInfo(cityName: String) {
-        val url = "$BASE_URL$API_KEY$cityName$DAYS_SUFFIX"
-
-        setCityName(cityName)
-        val requestQueue: RequestQueue = Volley.newRequestQueue(this)
-        val request = JsonObjectRequest(Request.Method.GET, url, null, {
-            binding.idPBLoading.visibility = View.GONE
-            binding.idRLHome.visibility = View.VISIBLE
-
-            weatherList.clear()
-            try {
-                val urlSuffix = "http:"
-                val temperature: String = it.getJSONObject("current").getString("temp_c")
-                val isDay: Int = it.getJSONObject("current").getInt("is_day")
-                val condition: String = it.getJSONObject("current").getJSONObject("condition").getString("text")
-                val conditionIcon: String = it.getJSONObject("current").getJSONObject("condition").getString("icon")
-                val joinedUrl = "$urlSuffix$conditionIcon"
-
-                binding.idTVTemperature.text = temperature+"°C"
-                binding.idTVCondition.text = condition
-                loadImage(joinedUrl, binding.idIVIcon)
-                if (isDay == DAY_INT){
-                    loadImage(dayImageUrl, binding.idIVBack)
-                }else {
-                    loadImage(nightImageUrl, binding.idIVBack)
-                }
-
-                val forecast: JSONObject= it.getJSONObject("forecast")
-                val forecastDay: JSONObject = forecast.getJSONArray("forecastday").getJSONObject(0)
-                val hourArray: JSONArray = forecastDay.getJSONArray("hour")
-
-                for (i in 0 until hourArray.length()){
-                    val hourObject = hourArray.getJSONObject(i)
-                    val time: String = hourObject.getString("time")
-                    val temp: String = hourObject.getString("temp_c")
-                    val image: String = hourObject.getJSONObject("condition").getString("icon")
-                    val wind: String = hourObject.getString("wind_kph")
-
-                    weatherList.add(
-                        WeatherModel(
-                            time,
-                            temp,
-                            image,
-                            wind
-                        )
-                    )
-                }
-                weatherAdapter.notifyDataSetChanged()
-
-            }catch (e: JSONException){
-               e.printStackTrace()
-            }
-
-            }) {
-            Toast.makeText(this@MainActivity, "Please enter valid city name", Toast.LENGTH_SHORT)
-                .show()
-        }
-        requestQueue.add(request)
-    }
-
-    private fun setCityName(cityName: String){
-        if (cityName.isEmpty()){
+    private fun setCityName(cityName: String) {
+        if (cityName.isEmpty()) {
             binding.idTVCityName.text = getString(R.string.default_city)
         }
         binding.idTVCityName.text = cityName
     }
 
-/*    @SuppressLint("NotifyDataSetChanged")
-    fun loadUI() {
+    private fun loadUI() {
         val urlSuffix = "http:"
-        weatherAdapter.notifyDataSetChanged()
 
         binding.apply {
             idPBLoading.visibility = View.GONE
             idRLHome.visibility = View.VISIBLE
-            idTVCityName.text = viewModel.getCityName().value
-
-            idTVTemperature.text = viewModel.getTemperature().value
-            idTVCondition.text = viewModel.getConditionIcon().value
         }
         val joinedUrl = "$urlSuffix${viewModel.getCondition().value}"
         loadImage(joinedUrl, binding.idIVIcon)
@@ -188,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             loadImage(nightImageUrl, binding.idIVBack)
         }
-    }*/
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
