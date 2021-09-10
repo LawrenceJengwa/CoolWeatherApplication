@@ -49,13 +49,15 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        checkPermissions()
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         val temp: LiveData<String> = viewModel.getTemperature()
         val condition: LiveData<String> = viewModel.getCondition()
         val townName: LiveData<String> = viewModel.getCityName()
+        val icon: LiveData<String> = viewModel.getConditionIcon()
         val dayTimeInt: LiveData<Int> = viewModel.getIsDay()
-        setUpObservers(condition, temp, townName, dayTimeInt)
+        setUpObservers(condition, temp, townName, icon, dayTimeInt)
+        loadUI()
 
         weatherAdapter =
             WeatherAdapter(this, weatherList)
@@ -65,11 +67,9 @@ class MainActivity : AppCompatActivity() {
             weatherAdapter.addWeatherList(it as java.util.ArrayList<WeatherModel>?)
         })
 
-        checkPermissions()
         setCityName(mCityName)
 
         viewModel.getWeatherData(this, mCityName)
-        loadUI()
 
         binding.idIVSearch.setOnClickListener {
             val city: String = binding.idEdtCity.text.toString()
@@ -86,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         condition: LiveData<String>,
         temp: LiveData<String>,
         cityName: LiveData<String>,
+        conditionIcon: LiveData<String>,
         isDay: LiveData<Int>
     ) {
         condition.observe(this, {
@@ -98,6 +99,10 @@ class MainActivity : AppCompatActivity() {
 
         cityName.observe(this, {
             binding.idTVCityName.text = it
+        })
+
+        conditionIcon.observe(this, {
+            loadImage(it, binding.idIVIcon)
         })
 
         isDay.observe(this, {
@@ -153,7 +158,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUI() {
-
         binding.apply {
             idPBLoading.visibility = View.GONE
             idRLHome.visibility = View.VISIBLE

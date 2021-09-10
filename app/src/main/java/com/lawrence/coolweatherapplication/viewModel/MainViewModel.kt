@@ -78,7 +78,6 @@ class MainViewModel : ViewModel() {
     }
 
     private fun getWeatherInfo(request: JSONObject) {
-
             weatherList.value?.clear()
                 temperature.postValue(request.getJSONObject("current").getString("temp_c"))
                 isDay.postValue(request.getJSONObject("current").getInt("is_day"))
@@ -87,7 +86,6 @@ class MainViewModel : ViewModel() {
                 val forecast: JSONObject = request.getJSONObject("forecast")
                 val forecastDay: JSONObject = forecast.getJSONArray("forecastday").getJSONObject(0)
                 val hourArray: JSONArray = forecastDay.getJSONArray("hour")
-
 
                 for (i in 0 until hourArray.length()){
                     val hourObject = hourArray.getJSONObject(i)
