@@ -54,7 +54,8 @@ class MainActivity : AppCompatActivity() {
         val temp: LiveData<String> = viewModel.getTemperature()
         val condition: LiveData<String> = viewModel.getCondition()
         val townName: LiveData<String> = viewModel.getCityName()
-        setUpObservers(condition, temp, townName)
+        val dayTimeInt: LiveData<Int> = viewModel.getIsDay()
+        setUpObservers(condition, temp, townName, dayTimeInt)
 
         weatherAdapter =
             WeatherAdapter(this, weatherList)
@@ -84,7 +85,8 @@ class MainActivity : AppCompatActivity() {
     private fun setUpObservers(
         condition: LiveData<String>,
         temp: LiveData<String>,
-        cityName: LiveData<String>
+        cityName: LiveData<String>,
+        isDay: LiveData<Int>
     ) {
         condition.observe(this, {
             binding.idTVCondition.text = it
@@ -96,6 +98,19 @@ class MainActivity : AppCompatActivity() {
 
         cityName.observe(this, {
             binding.idTVCityName.text = it
+        })
+
+        isDay.observe(this, {
+            val urlSuffix = "http:"
+            if (viewModel.getIsDay().value == DAY_INT) {
+                val joinedUrl = "$urlSuffix${viewModel.getCondition().value}"
+                loadImage(joinedUrl, binding.idIVIcon)
+                if (viewModel.getIsDay().value == DAY_INT) {
+                    loadImage(dayImageUrl, binding.idIVBack)
+                } else {
+                    loadImage(nightImageUrl, binding.idIVBack)
+                }
+            }
         })
     }
 
@@ -138,19 +153,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUI() {
-        val urlSuffix = "http:"
 
         binding.apply {
             idPBLoading.visibility = View.GONE
             idRLHome.visibility = View.VISIBLE
         }
-        val joinedUrl = "$urlSuffix${viewModel.getCondition().value}"
-        loadImage(joinedUrl, binding.idIVIcon)
-        if (viewModel.getIsDay().value == DAY_INT) {
-            loadImage(dayImageUrl, binding.idIVBack)
-        } else {
-            loadImage(nightImageUrl, binding.idIVBack)
-        }
+
     }
 
     override fun onRequestPermissionsResult(
