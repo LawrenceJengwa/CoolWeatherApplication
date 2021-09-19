@@ -8,25 +8,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.volley.Request
-import com.android.volley.RequestQueue
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
-import com.lawrence.coolweatherapplication.WeatherAdapter
 import com.lawrence.coolweatherapplication.model.WeatherModel
 import com.lawrence.coolweatherapplication.utils.NetworkUtil
-import com.lawrence.coolweatherapplication.utils.WeatherUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 
-class MainViewModel : ViewModel() {
+class MainViewModel @Inject constructor() : ViewModel() {
 
     private val weatherList = MutableLiveData<MutableList<WeatherModel>>()
     private val isDay = MutableLiveData<Int>()

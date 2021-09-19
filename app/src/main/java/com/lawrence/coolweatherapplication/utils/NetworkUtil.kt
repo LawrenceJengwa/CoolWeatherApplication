@@ -1,21 +1,23 @@
 package com.lawrence.coolweatherapplication.utils
 
-import android.app.Application
 import android.content.Context
-import android.util.Log
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import dagger.Module
+import dagger.Provides
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONObject
 import java.lang.Exception
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+@Module
 class NetworkUtil(private val context: Context) {
 
+    @Provides
     suspend fun getWeatherData(cityName: String): JSONObject {
         val url = "${WeatherUtil.BASE_URL}${WeatherUtil.API_KEY}$cityName${WeatherUtil.DAYS_SUFFIX}"
 

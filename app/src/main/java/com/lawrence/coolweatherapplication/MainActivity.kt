@@ -10,20 +10,14 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.*
 import androidx.core.app.ActivityCompat
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModelProvider
-import com.android.volley.Request
-import com.android.volley.RequestQueue
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
+import com.lawrence.coolweatherapplication.dagger.MyApplication
 import com.lawrence.coolweatherapplication.databinding.ActivityMainBinding
 import com.lawrence.coolweatherapplication.model.WeatherModel
 import com.lawrence.coolweatherapplication.utils.WeatherUtil.*
 import com.lawrence.coolweatherapplication.viewModel.MainViewModel
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
@@ -32,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     private var weatherList: ArrayList<WeatherModel> = ArrayList()
     private lateinit var weatherAdapter: WeatherAdapter
     private lateinit var locationManager: LocationManager
-    private lateinit var viewModel: MainViewModel
+    @Inject lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
 
     companion object {
@@ -46,11 +40,15 @@ class MainActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+        (applicationContext as MyApplication).appComponent.inject(this)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        binding.myViewModel = viewModel
+        binding.lifecycleOwner = this
+
+        //binding = ActivityMainBinding.inflate(layoutInflater)
+        //setContentView(binding.root)
         checkPermissions()
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         val temp: LiveData<String> = viewModel.getTemperature()
         val condition: LiveData<String> = viewModel.getCondition()
         val townName: LiveData<String> = viewModel.getCityName()
@@ -148,6 +146,7 @@ class MainActivity : AppCompatActivity() {
     private fun setLocation(location: Location?) {
         mCityName = location?.let { viewModel.getCityName(baseContext, it.longitude, it.latitude) }
             .toString()
+
     }
 
     private fun setCityName(cityName: String) {
