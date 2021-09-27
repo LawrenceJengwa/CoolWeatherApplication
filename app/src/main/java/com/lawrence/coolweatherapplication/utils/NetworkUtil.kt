@@ -14,10 +14,8 @@ import java.lang.Exception
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-@Module
 class NetworkUtil(private val context: Context) {
 
-    @Provides
     suspend fun getWeatherData(cityName: String): JSONObject {
         val url = "${WeatherUtil.BASE_URL}${WeatherUtil.API_KEY}$cityName${WeatherUtil.DAYS_SUFFIX}"
 

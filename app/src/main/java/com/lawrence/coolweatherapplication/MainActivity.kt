@@ -12,14 +12,17 @@ import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LiveData
-import com.lawrence.coolweatherapplication.dagger.MyApplication
+import com.lawrence.coolweatherapplication.dagger.MyApplicationHilt
 import com.lawrence.coolweatherapplication.databinding.ActivityMainBinding
 import com.lawrence.coolweatherapplication.model.WeatherModel
 import com.lawrence.coolweatherapplication.utils.WeatherUtil.*
 import com.lawrence.coolweatherapplication.viewModel.MainViewModel
+import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mCityName: String
@@ -40,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
-        (applicationContext as MyApplication).appComponent.inject(this)
+        //(applicationContext as MyApplicationHilt).appComponent.inject(this)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         binding.myViewModel = viewModel
